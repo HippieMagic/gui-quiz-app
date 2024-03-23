@@ -71,9 +71,14 @@ class Quiz:
         random.shuffle(self.questions)
 
     def timer(self, duration):
-        time.sleep(duration)
-        self.time_is_up = True
-        self.finish_quiz()
+        start_time = time.time()
+        while time.time() - start_time < duration:
+            if self.time_is_up or self.asked_questions >= len(self.questions):
+                break
+            time.sleep(0.1)  # Check every 0.1 seconds
+        if not self.time_is_up:
+            self.time_is_up = True
+            self.finish_quiz()
 
     def ask_question(self, question):
         answer = simpledialog.askinteger("Answer the Question",
@@ -101,6 +106,7 @@ class Quiz:
             self.finish_quiz()
 
     def finish_quiz(self):
+        self.time_is_up = True  # Ensure this is set to prevent further actions
         if self.asked_questions > 0:
             accuracy = (self.correct_answers / self.asked_questions) * 100
         else:
