@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, simpledialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 import threading
 import time
 import random
@@ -24,6 +24,7 @@ class Quiz:
         self.time_is_up = False
         self.asked_questions = 0
         self.correct_answers = 0
+        self.current_question_index = 0
         self.setup_gui()
 
     def setup_gui(self):
@@ -80,30 +81,52 @@ class Quiz:
             self.time_is_up = True
             self.finish_quiz()
 
-    def ask_question(self, question):
-        answer = simpledialog.askinteger("Answer the Question",
-                                         question.question_text + "\n\n" + "\n".join(
-                                             [f"{idx + 1}. {answer}" for idx, answer in enumerate(question.answers)]),
-                                         parent=self.master)
-        return answer
+    def ask_question(self):
+        # Grab the current question
+        question = self.questions[self.current_question_index]
+
+        # Increment for the next question
+        self.current_question_index += 1
+
+        # Create a Toplevel window to ask the question
+        question_window = tk.Toplevel(self.master)
+        question_window.wm_title("Question")
+
+        # Display the question text
+        tk.Label(question_window, text=question.question_text, wraplength=400).pack(padx=20, pady=10)
+
+        # Variable to hold the index of the selected answer
+        selected_answer = tk.IntVar(value=-1)
+
+        # Create a radio button for each answer
+        for idx, answer in enumerate(question.answers):
+            tk.Radiobutton(question_window, text=answer, variable=selected_answer, value=idx).pack(anchor="w")
+
+        # Function to handle submit action
+        def submit_answer():
+            question_window.destroy()  # Close the question window
+            self.handle_answer(selected_answer.get(), question.correct_answer_index)
+
+        # Submit button
+        submit_btn = tk.Button(question_window, text="Submit", command=submit_answer)
+        submit_btn.pack(pady=20)
+
+    def handle_answer(self, selected_index, correct_index):
+        if selected_index == correct_index:
+            self.correct_answers += 1
+        self.asked_questions += 1
+        if self.asked_questions < len(self.questions) and not self.time_is_up:
+            self.ask_question()  # Ask the next question
+        else:
+            self.finish_quiz()
 
     def start_quiz(self, num_of_questions, duration):
         self.time_is_up = False
         timer_thread = threading.Thread(target=self.timer, args=(duration,))
         timer_thread.start()
 
-        for i, question in enumerate(self.questions[:num_of_questions]):
-            if self.time_is_up:
-                break
-            answer = self.ask_question(question)
-            if answer is None:  # If the dialog is closed, stop the quiz.
-                break
-            if answer - 1 == question.correct_answer_index:
-                self.correct_answers += 1
-            self.asked_questions += 1
-
-        if not self.time_is_up:
-            self.finish_quiz()
+        # Start by asking the first question
+        self.ask_question()
 
     def finish_quiz(self):
         self.time_is_up = True  # Ensure this is set to prevent further actions
@@ -112,7 +135,7 @@ class Quiz:
         else:
             accuracy = 0
         messagebox.showinfo("Quiz Finished",
-                            f"Quiz completed.\nQuestions asked: {self.asked_questions}\nCorrect answers: {self.correct_answers}\nAccuracy: {accuracy:.2f}%")
+                            f"Quiz completed.\nQuestions asked: {self.asked_questions}\nCorrect answers: {self.correct_answers}, Accuracy: {accuracy:.2f}%")
         logging.info(
             f"Questions asked: {self.asked_questions}, Correct answers: {self.correct_answers}, Accuracy: {accuracy:.2f}%")
 
@@ -131,9 +154,13 @@ class Quiz:
         if not duration:
             return
 
+        # Ensure the number of questions does not exceed the loaded questions
+        num_of_questions = min(num_of_questions, len(self.questions))
+
         # Reset quiz statistics
         self.asked_questions = 0
         self.correct_answers = 0
+        self.current_question_index = 0
 
         # Start the quiz with the specified number of questions and duration
         self.start_quiz(num_of_questions, duration)
@@ -147,3 +174,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
