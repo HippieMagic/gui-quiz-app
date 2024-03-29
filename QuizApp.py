@@ -30,10 +30,11 @@ class Quiz:
 
     def setup_gui(self):
         self.master.title("Quiz Application")
+        # Add a button to start a new quiz
         start_btn = tk.Button(self.master, text="Start New Quiz", command=self.start_new_quiz)
         start_btn.pack(pady=20)
 
-        # Add a new button to view the log
+        # Add a button to view the log
         view_log_btn = tk.Button(self.master, text="View Log", command=self.view_log)
         view_log_btn.pack(pady=20)
 
@@ -182,7 +183,7 @@ class Quiz:
     def view_log(self):
         log_window = tk.Toplevel(self.master)
         log_window.title("Quiz Log")
-        log_window.geometry("500x400")  # Adjust size as needed
+        log_window.geometry("500x400")
 
         # Create a Text widget to display the log
         text_area = tk.Text(log_window, wrap="word", state="disabled", bg="light gray")
