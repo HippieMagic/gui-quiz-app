@@ -27,16 +27,54 @@ class Quiz:
         self.correct_answers = 0
         self.current_question_index = 0
         self.total_questions_to_ask = 0
+        self.file_path = ''
 
     def setup_gui(self):
         self.master.title("Quiz Application")
-        # Add a button to start a new quiz
-        start_btn = tk.Button(self.master, text="Start New Quiz", command=self.start_new_quiz)
-        start_btn.pack(pady=20)
+
+        # File selection button
+        self.file_btn = tk.Button(self.master, text="Select Quiz File", command=self.select_file)
+        self.file_btn.pack(pady=(20, 0))
+
+        # Number of questions entry
+        self.num_questions_label = tk.Label(self.master, text="Number of Questions:")
+        self.num_questions_label.pack()
+        self.num_questions_entry = tk.Entry(self.master)
+        self.num_questions_entry.pack(pady=(0, 20))
+
+        # Duration entry
+        self.duration_label = tk.Label(self.master, text="Quiz Duration (seconds):")
+        self.duration_label.pack()
+        self.duration_entry = tk.Entry(self.master)
+        self.duration_entry.pack(pady=(0, 20))
+
+        # Start quiz button
+        self.start_quiz_btn = tk.Button(self.master, text="Start Quiz", command=self.start_quiz_from_gui)
+        self.start_quiz_btn.pack(pady=(0, 20))
 
         # Add a button to view the log
-        view_log_btn = tk.Button(self.master, text="View Log", command=self.view_log)
-        view_log_btn.pack(pady=20)
+        self.view_log_btn = tk.Button(self.master, text="View Log", command=self.view_log)
+        self.view_log_btn.pack(pady=20)
+
+    def select_file(self):
+        self.file_path = filedialog.askopenfilename(title="Select Quiz File",
+                                                    filetypes=(("Quiz files", "*.q"), ("Text files", "*.txt")))
+        if not self.file_path:
+            return
+
+    def start_quiz_from_gui(self):
+        # Validate and set up the quiz parameters from GUI
+        num_questions = self.num_questions_entry.get()
+        duration = self.duration_entry.get()
+
+        if not self.file_path or not num_questions.isdigit() or not duration.isdigit():
+            messagebox.showerror("Error",
+                                 "Please select a quiz file and enter valid numbers for questions and duration.")
+            return
+
+        self.load_questions_from_file(self.file_path)
+        num_of_questions = min(int(num_questions), len(self.questions))
+        self.start_quiz(num_of_questions, int(duration))
 
     def load_questions_from_file(self, file_path):
         with open(file_path, 'r') as file:
