@@ -32,6 +32,10 @@ class Quiz:
         start_btn = tk.Button(self.master, text="Start New Quiz", command=self.start_new_quiz)
         start_btn.pack(pady=20)
 
+        # Add a new button to view the log
+        view_log_btn = tk.Button(self.master, text="View Log", command=self.view_log)
+        view_log_btn.pack(pady=20)
+
     def load_questions_from_file(self, file_path):
         with open(file_path, 'r') as file:
             lines = file.readlines()
@@ -164,6 +168,27 @@ class Quiz:
 
         # Start the quiz with the specified number of questions and duration
         self.start_quiz(num_of_questions, duration)
+
+    def view_log(self):
+        log_window = tk.Toplevel(self.master)
+        log_window.title("Quiz Log")
+        log_window.geometry("500x400")  # Adjust size as needed
+
+        # Create a Text widget to display the log
+        text_area = tk.Text(log_window, wrap="word", state="disabled", bg="light gray")
+        text_area.pack(expand=True, fill="both", padx=10, pady=10)
+
+        # Add a scrollbar
+        scrollbar = tk.Scrollbar(log_window, command=text_area.yview)
+        scrollbar.pack(side="right", fill="y")
+        text_area.config(yscrollcommand=scrollbar.set)
+
+        # Read the log file and insert the contents into the Text widget
+        with open('quiz_results.log', 'r') as log_file:
+            log_contents = log_file.read()
+            text_area.config(state="normal")
+            text_area.insert("1.0", log_contents)
+            text_area.config(state="disabled")  # Prevent editing of log
 
 
 def main():
