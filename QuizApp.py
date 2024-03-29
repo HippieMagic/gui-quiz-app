@@ -20,6 +20,13 @@ class QuizQuestion:
 
 class Quiz:
     def __init__(self, master):
+        self.view_log_btn = None
+        self.start_quiz_btn = None
+        self.duration_entry = None
+        self.duration_label = None
+        self.num_questions_entry = None
+        self.num_questions_label = None
+        self.file_btn = None
         self.master = master
         self.questions = []
         self.time_is_up = False
